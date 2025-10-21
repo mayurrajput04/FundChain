@@ -5,6 +5,8 @@ import { useCampaigns } from '../../hooks/useCampaigns';
 import CampaignWizard from './CampaignWizard';
 import CampaignCard from '../common/CampaignCard';
 
+import LoginGate from '../common/LoginGate';
+
 const CreatorDashboard = () => {
   const { account } = useWeb3();
   const { campaigns, loading } = useCampaigns();
@@ -62,7 +64,8 @@ const CreatorDashboard = () => {
   );
 
   return (
-    <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '2rem 1rem' }}>
+    <LoginGate requireRegistration={true}>
+          <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '2rem 1rem' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
@@ -215,6 +218,9 @@ const CreatorDashboard = () => {
         `}
       </style>
     </div>
+    </LoginGate>
+
+
   );
 };
 

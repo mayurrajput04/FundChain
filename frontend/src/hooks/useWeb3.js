@@ -24,30 +24,23 @@ export const useWeb3 = () => {
   };
 
   const switchToSepolia = async () => {
-    if (typeof window.ethereum === 'undefined') {
-      throw new Error('MetaMask not installed');
-    }
-
     try {
-      // Try to switch to Sepolia
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: SEPOLIA_CHAIN_ID }],
+        params: [{ chainId: `0x${SEPOLIA_CHAIN_ID.toString(16)}` }],
       });
-    } catch (switchError) {
-      // This error code indicates that the chain has not been added to MetaMask
-      if (switchError.code === 4902) {
-        try {
-          // Add Sepolia to MetaMask
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [SEPOLIA_CONFIG],
-          });
-        } catch (addError) {
-          throw new Error('Failed to add Sepolia network to MetaMask');
-        }
-      } else {
-        throw new Error('Failed to switch to Sepolia network');
+    } catch (error) {
+      if (error.code === 4902) {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: `0x${SEPOLIA_CHAIN_ID.toString(16)}`,
+            chainName: 'Sepolia Testnet',
+            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+            rpcUrls: ['https://sepolia.infura.io/v3/'],
+            blockExplorerUrls: ['https://sepolia.etherscan.io']
+          }]
+        });
       }
     }
   };
@@ -90,12 +83,52 @@ export const useWeb3 = () => {
     setChainId(null);
     setIsConnected(false);
     setError(null);
+
+    // Clear all auth data
+    localStorage.removeItem('fundchain_auth');
+    localStorage.removeItem('admin_authenticated');
+    localStorage.removeItem('admin_timestamp');
+    
+    console.log('👋 Disconnected');
   }, []);
 
   // Check if connected to correct network
   const isCorrectNetwork = useCallback(() => {
     return chainId === 11155111; // Sepolia chain ID
   }, [chainId]);
+
+
+  // Listen for account changes
+
+  useEffect(() => {
+    if (!window.ethereum) return;
+
+    const handleAccountsChanged = (accounts) => {
+      console.log('🔄 Wallet changed:', accounts[0]);
+      
+      if (accounts.length === 0) {
+        // User disconnected
+        disconnect();
+      } else {
+        // Account changed - reload the page to reset state
+        window.location.reload();
+      }
+    };
+
+    const handleChainChanged = (newChainId) => {
+      console.log('🔄 Chain changed:', parseInt(newChainId, 16));
+      // Reload to reset state
+      window.location.reload();
+    };
+
+    window.ethereum.on('accountsChanged', handleAccountsChanged);
+    window.ethereum.on('chainChanged', handleChainChanged);
+
+    return () => {
+      window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+      window.ethereum.removeListener('chainChanged', handleChainChanged);
+    };
+  }, []);
 
   useEffect(() => {
     const checkConnection = async () => {

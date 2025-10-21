@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Wallet, Users, Eye, Shield, AlertTriangle } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Wallet, Users, Eye, Shield, AlertTriangle, LogOut, Search, PlusCircle, Heart} from 'lucide-react';
 import { useCampaigns } from '../../hooks/useCampaigns';
+import { useWeb3 } from '../../hooks/useWeb3';
+import WalletConnect from './WalletConnect';
 
 const Header = ({ account, onDisconnect }) => {
   const { isAdmin, hardcodedAdminAddress, contractAdminAddress, campaigns } = useCampaigns();

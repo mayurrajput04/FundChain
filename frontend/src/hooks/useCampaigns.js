@@ -2,150 +2,198 @@ import { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { useWeb3 } from './useWeb3';
 
-// Campaign Factory ABI
-const CAMPAIGN_FACTORY_ABI = [
-  {
-    "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "campaignAddress",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "creator",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "title",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "goal",
-        "type": "uint256"
-      }
-    ],
-    "name": "CampaignCreated",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "_title",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_goal",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_deadline",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "_category",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_description",
-        "type": "string"
-      }
-    ],
-    "name": "createCampaign",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "deployedCampaigns",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getDeployedCampaigns",
-    "outputs": [
-      {
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_address",
-        "type": "address"
-      }
-    ],
-    "name": "isAdmin",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "admin",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  }
-];
+// ✅ IMPORT THE CONFIG PROPERLY
+import contractConfig from '../config/contracts';
 
-// Campaign ABI
+// ✅ DEBUGGING: Log what we imported
+console.log('🔍 Contract Config Loaded:', {
+  hasConfig: !!contractConfig,
+  hasAddresses: !!contractConfig?.addresses,
+  hasAbis: !!contractConfig?.abis,
+  factoryAddress: contractConfig?.addresses?.campaignFactory,
+  factoryAbiLength: contractConfig?.abis?.campaignFactory?.length,
+  registryAddress: contractConfig?.addresses?.userRegistry,
+  registryAbiLength: contractConfig?.abis?.userRegistry?.length
+});
+
+// ✅ EXTRACT VALUES
+const FACTORY_ADDRESS = contractConfig?.addresses?.campaignFactory;
+const USER_REGISTRY_ADDRESS = contractConfig?.addresses?.userRegistry;
+const CAMPAIGN_FACTORY_ABI = contractConfig?.abis?.campaignFactory;
+const USER_REGISTRY_ABI = contractConfig?.abis?.userRegistry;
+const HARDCODED_ADMIN_ADDRESS = contractConfig?.admin || "0x1b4709064B3050d11Ba2540AbA8B3B4412159697";
+
+// ✅ VALIDATE ON LOAD
+if (!FACTORY_ADDRESS || !USER_REGISTRY_ADDRESS) {
+  console.error('❌ CONTRACT ADDRESSES MISSING!');
+  console.error('   Factory:', FACTORY_ADDRESS);
+  console.error('   Registry:', USER_REGISTRY_ADDRESS);
+  console.error('   Config:', contractConfig);
+}
+
+if (!CAMPAIGN_FACTORY_ABI || CAMPAIGN_FACTORY_ABI.length === 0) {
+  console.error('❌ CAMPAIGN FACTORY ABI MISSING OR EMPTY!');
+  console.error('   ABI:', CAMPAIGN_FACTORY_ABI);
+}
+
+if (!USER_REGISTRY_ABI || USER_REGISTRY_ABI.length === 0) {
+  console.error('❌ USER REGISTRY ABI MISSING OR EMPTY!');
+  console.error('   ABI:', USER_REGISTRY_ABI);
+}
+
+// ✅ Log the createCampaign function from ABI
+const createCampaignABI = CAMPAIGN_FACTORY_ABI?.find(
+  item => item.type === 'function' && item.name === 'createCampaign'
+);
+console.log('🔍 createCampaign ABI found:', !!createCampaignABI);
+if (createCampaignABI) {
+  console.log('   Inputs:', createCampaignABI.inputs?.map(i => `${i.name}: ${i.type}`));
+}
+
+// Campaign Factory ABI
+// const CAMPAIGN_FACTORY_ABI = [
+//   {
+//     "inputs": [],
+//     "stateMutability": "nonpayable",
+//     "type": "constructor"
+//   },
+//   {
+//     "anonymous": false,
+//     "inputs": [
+//       {
+//         "indexed": false,
+//         "internalType": "address",
+//         "name": "campaignAddress",
+//         "type": "address"
+//       },
+//       {
+//         "indexed": false,
+//         "internalType": "address",
+//         "name": "creator",
+//         "type": "address"
+//       },
+//       {
+//         "indexed": false,
+//         "internalType": "string",
+//         "name": "title",
+//         "type": "string"
+//       },
+//       {
+//         "indexed": false,
+//         "internalType": "uint256",
+//         "name": "goal",
+//         "type": "uint256"
+//       }
+//     ],
+//     "name": "CampaignCreated",
+//     "type": "event"
+//   },
+//   {
+//     "inputs": [
+//       {
+//         "internalType": "string",
+//         "name": "_title",
+//         "type": "string"
+//       },
+//       {
+//         "internalType": "uint256",
+//         "name": "_goal",
+//         "type": "uint256"
+//       },
+//       {
+//         "internalType": "uint256",
+//         "name": "_deadline",
+//         "type": "uint256"
+//       },
+//       {
+//         "internalType": "string",
+//         "name": "_category",
+//         "type": "string"
+//       },
+//       {
+//         "internalType": "string",
+//         "name": "_description",
+//         "type": "string"
+//       }
+//     ],
+//     "name": "createCampaign",
+//     "outputs": [
+//       {
+//         "internalType": "address",
+//         "name": "",
+//         "type": "address"
+//       }
+//     ],
+//     "stateMutability": "nonpayable",
+//     "type": "function"
+//   },
+//   {
+//     "inputs": [
+//       {
+//         "internalType": "uint256",
+//         "name": "",
+//         "type": "uint256"
+//       }
+//     ],
+//     "name": "deployedCampaigns",
+//     "outputs": [
+//       {
+//         "internalType": "address",
+//         "name": "",
+//         "type": "address"
+//       }
+//     ],
+//     "stateMutability": "view",
+//     "type": "function"
+//   },
+//   {
+//     "inputs": [],
+//     "name": "getDeployedCampaigns",
+//     "outputs": [
+//       {
+//         "internalType": "address[]",
+//         "name": "",
+//         "type": "address[]"
+//       }
+//     ],
+//     "stateMutability": "view",
+//     "type": "function"
+//   },
+//   {
+//     "inputs": [
+//       {
+//         "internalType": "address",
+//         "name": "_address",
+//         "type": "address"
+//       }
+//     ],
+//     "name": "isAdmin",
+//     "outputs": [
+//       {
+//         "internalType": "bool",
+//         "name": "",
+//         "type": "bool"
+//       }
+//     ],
+//     "stateMutability": "view",
+//     "type": "function"
+//   },
+//   {
+//     "inputs": [],
+//     "name": "admin",
+//     "outputs": [
+//       {
+//         "internalType": "address",
+//         "name": "",
+//         "type": "address"
+//       }
+//     ],
+//     "stateMutability": "view",
+//     "type": "function"
+//   }
+// ];
+
+// ✅ ADD THIS - Campaign ABI
 const CAMPAIGN_ABI = [
   {
     "inputs": [
@@ -178,6 +226,11 @@ const CAMPAIGN_ABI = [
         "internalType": "string",
         "name": "_description",
         "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "_factoryAddress",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -475,16 +528,42 @@ const CAMPAIGN_ABI = [
     ],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "factory",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "userRegistry",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
 ];
 
-// 🔒 HARDCODED ADMIN ADDRESS - ONLY THIS ADDRESS HAS ADMIN RIGHTS
-const HARDCODED_ADMIN_ADDRESS = "0x1b4709064B3050d11Ba2540AbA8B3B4412159697";
+// // 🔒 HARDCODED ADMIN ADDRESS - ONLY THIS ADDRESS HAS ADMIN RIGHTS
+// const HARDCODED_ADMIN_ADDRESS = "0x1b4709064B3050d11Ba2540AbA8B3B4412159697";
 
-// Factory contract address
-const FACTORY_ADDRESS = "0xCa01d14854272120775487665ef31A0da0A33315";
+// // Factory contract address
+// ✅ EXTRACT VALUES
 
-export const useCampaigns = () => {
+export const useCampaigns = () => { 
   const { signer, account, isConnected } = useWeb3();
   const [factoryContract, setFactoryContract] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
@@ -492,6 +571,19 @@ export const useCampaigns = () => {
   const [error, setError] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [contractAdminAddress, setContractAdminAddress] = useState(null);
+
+  // Validate addresses on load
+  useEffect(() => {
+    if (!FACTORY_ADDRESS || !USER_REGISTRY_ADDRESS) {
+      console.error('❌ Contract addresses not configured!');
+      console.error('Please run: npm run update-addresses');
+      setError('Contract addresses not configured. Please deploy contracts first.');
+    } else {
+      console.log('✅ Contract addresses loaded:');
+      console.log('   Factory:', FACTORY_ADDRESS);
+      console.log('   UserRegistry:', USER_REGISTRY_ADDRESS);
+    }
+  }, []);
 
   // Initialize factory contract
   useEffect(() => {
@@ -637,7 +729,7 @@ export const useCampaigns = () => {
         deadline,
         category,
         description,
-        { gasLimit: 1000000 }
+        { gasLimit: 3000000  }
       );
 
       console.log('📝 Transaction sent:', tx.hash);
@@ -675,7 +767,7 @@ export const useCampaigns = () => {
       const campaignContract = new ethers.Contract(campaignAddress, CAMPAIGN_ABI, signer);
       const tx = await campaignContract.contribute({
         value: ethers.parseEther(amount),
-        gasLimit: 1000000
+        gasLimit: 500000
       });
 
       console.log('📝 Contribution transaction sent:', tx.hash);
@@ -723,7 +815,7 @@ export const useCampaigns = () => {
       }
       
       const tx = await campaignContract.approveCampaign({
-        gasLimit: 1000000
+        gasLimit: 200000
       });
       
       console.log('📝 Approval transaction sent:', tx.hash);

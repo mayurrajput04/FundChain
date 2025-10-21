@@ -1,14 +1,32 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "./UserRegistry.sol";
+
 contract CampaignFactory {
     address[] public deployedCampaigns;
     address public admin;
+    UserRegistry public userRegistry;  // ✅ NEW: Reference to UserRegistry
     
-    event CampaignCreated(address campaignAddress, address creator, string title, uint goal);
+    // ✅ NEW: Minimum KYC requirements
+    UserRegistry.KYCLevel public minKYCForCreation;
+    UserRegistry.KYCLevel public minKYCForContribution;
     
-    constructor() {
+    event CampaignCreated(
+        address campaignAddress, 
+        address creator, 
+        string title, 
+        uint goal
+    );
+    
+    // ✅ UPDATED: Constructor now takes UserRegistry address
+    constructor(address _userRegistryAddress) {
         admin = msg.sender;
+        userRegistry = UserRegistry(_userRegistryAddress);
+        
+        // Set default KYC requirements
+        minKYCForCreation = UserRegistry.KYCLevel.BASIC;      // Need BASIC to create
+        minKYCForContribution = UserRegistry.KYCLevel.NONE;   // Anyone can contribute
     }
     
     function createCampaign(
@@ -18,20 +36,51 @@ contract CampaignFactory {
         string memory _category,
         string memory _description
     ) public returns (address) {
+        // ✅ NEW: Check if user is registered
+        require(
+            userRegistry.isRegistered(msg.sender),
+            "You must register first before creating campaigns"
+        );
+        
+        // ✅ NEW: Check KYC level
+        require(
+            userRegistry.meetsKYCRequirement(msg.sender, minKYCForCreation),
+            "Insufficient KYC level to create campaign"
+        );
+        
+        // ✅ NEW: Check user is not banned
+        UserRegistry.UserProfile memory profile = userRegistry.getUserProfile(msg.sender);
+        require(!profile.isBanned, "Your account is banned");
+        
+        // Rest of campaign creation (existing code)
         Campaign newCampaign = new Campaign(
             msg.sender,
             _title,
             _goal,
             _deadline,
             _category,
-            _description
+            _description,
+            address(this)  // Pass factory address
         );
+        
         deployedCampaigns.push(address(newCampaign));
         
         emit CampaignCreated(address(newCampaign), msg.sender, _title, _goal);
         return address(newCampaign);
     }
     
+    // ✅ NEW: Admin can change KYC requirements
+    function setMinKYCForCreation(UserRegistry.KYCLevel _level) external {
+        require(msg.sender == admin, "Only admin");
+        minKYCForCreation = _level;
+    }
+    
+    function setMinKYCForContribution(UserRegistry.KYCLevel _level) external {
+        require(msg.sender == admin, "Only admin");
+        minKYCForContribution = _level;
+    }
+    
+    // Existing functions remain the same
     function getDeployedCampaigns() public view returns (address[] memory) {
         return deployedCampaigns;
     }
@@ -48,7 +97,9 @@ contract Campaign {
         uint timestamp;
     }
     
-    CampaignFactory public factory;  // ✅ ADDED - Store reference to factory
+    CampaignFactory public factory;
+    UserRegistry public userRegistry;  // ✅ NEW
+    
     address public creator;
     string public title;
     string public category;
@@ -72,19 +123,23 @@ contract Campaign {
     }
     
     modifier onlyAdmin() {
-        require(factory.isAdmin(msg.sender), "Only admin can approve");  // ✅ FIXED - Check factory admin
+        require(factory.isAdmin(msg.sender), "Only admin can approve");
         _;
     }
     
+    // ✅ UPDATED: Constructor
     constructor(
         address _creator,
         string memory _title,
         uint _goal,
         uint _deadline,
         string memory _category,
-        string memory _description
+        string memory _description,
+        address _factoryAddress
     ) {
-        factory = CampaignFactory(msg.sender);  // ✅ ADDED - Save factory reference
+        factory = CampaignFactory(_factoryAddress);
+        userRegistry = factory.userRegistry();  // ✅ Get UserRegistry from factory
+        
         creator = _creator;
         title = _title;
         goal = _goal;
@@ -92,7 +147,7 @@ contract Campaign {
         category = _category;
         description = _description;
         isActive = true;
-        isApproved = false;  // ✅ ADDED - Explicit initial state
+        isApproved = false;
     }
     
     function contribute() public payable {
@@ -100,6 +155,25 @@ contract Campaign {
         require(isApproved, "Campaign not approved yet");
         require(block.timestamp < deadline, "Campaign ended");
         require(msg.value > 0, "Contribution must be > 0");
+        
+        // ✅ NEW: Check if contributor is registered
+        require(
+            userRegistry.isRegistered(msg.sender),
+            "You must register before contributing"
+        );
+        
+        // ✅ NEW: Check KYC requirement
+        require(
+            userRegistry.meetsKYCRequirement(
+                msg.sender, 
+                factory.minKYCForContribution()
+            ),
+            "Insufficient KYC level to contribute"
+        );
+        
+        // ✅ NEW: Check not banned
+        UserRegistry.UserProfile memory profile = userRegistry.getUserProfile(msg.sender);
+        require(!profile.isBanned, "Your account is banned");
         
         contributions.push(Contribution(msg.sender, msg.value, block.timestamp));
         contributionsByAddress[msg.sender] += msg.value;
@@ -113,7 +187,6 @@ contract Campaign {
     }
     
     function approveCampaign() public onlyAdmin {
-        require(!isApproved, "Campaign already approved");  // ✅ ADDED - Prevent double approval
         isApproved = true;
         emit CampaignApproved();
     }

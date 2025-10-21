@@ -1,0 +1,8 @@
+{
+  "lib/contracts": {
+    "tag": {
+      "name": "v2.5.7",
+      "rev": "d0ef0c09658e2a194efbff920582e10e467961ae"
+    }
+  }
+}
