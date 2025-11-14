@@ -4,14 +4,39 @@ import { useWeb3 } from '../../hooks/useWeb3';
 import { useCampaigns } from '../../hooks/useCampaigns';
 import CampaignWizard from './CampaignWizard';
 import CampaignCard from '../common/CampaignCard';
-
+import {UserRole, KYCLevel, useUserRegistry} from '../../hooks/useUserRegistry';
 import LoginGate from '../common/LoginGate';
+import {useToast, ToastProvider} from '../../contexts/ToastContext';
 
 const CreatorDashboard = () => {
   const { account } = useWeb3();
   const { campaigns, loading } = useCampaigns();
+  const { userProfile, isRegistered } = useUserRegistry();  // ✅ ADD isRegistered, userProfile
+  const { showToast } = useToast();  // ✅ ADD this
   const [showWizard, setShowWizard] = useState(false);
   
+
+  // ✅ ADD: Check if this is a new user (just registered)
+  useEffect(() => {
+    if (isRegistered && userProfile) {
+      const registrationDate = new Date(userProfile.registrationDate);
+      const now = new Date();
+      const hoursSinceRegistration = (now.getTime() - registrationDate.getTime()) / (1000 * 60 * 60);
+      
+      // If registered less than 1 hour ago, show welcome message
+      if (hoursSinceRegistration < 1) {
+        const hasShownWelcome = localStorage.getItem(`welcome_shown_${account}`);
+        if (!hasShownWelcome) {
+          setTimeout(() => {
+            showToast(`👋 Welcome @${userProfile.username}! Ready to create your first campaign?`, 'success', 7000);
+            localStorage.setItem(`welcome_shown_${account}`, 'true');
+          }, 1000);
+        }
+      }
+    }
+  }, [isRegistered, userProfile, account, showToast]);
+
+
   // FIXED: Only show campaigns created by THIS user (not admin view)
   const userCampaigns = useMemo(() => {
     return campaigns.filter(campaign => 
@@ -77,26 +102,33 @@ const CreatorDashboard = () => {
           </p>
         </div>
         <button
-          onClick={() => setShowWizard(true)}
-          style={{
-            backgroundColor: '#4f46e5',
-            color: 'white',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '0.5rem',
-            fontWeight: '600',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseOver={(e) => e.target.style.backgroundColor = '#4338ca'}
-          onMouseOut={(e) => e.target.style.backgroundColor = '#4f46e5'}
-        >
-          <Plus style={{ width: '1.25rem', height: '1.25rem' }} />
-          <span>Create Campaign</span>
-        </button>
+  onClick={() => {
+    // Check KYC level before opening wizard
+    if (userProfile && userProfile.kycLevel < 1) {
+      showToast('⚠️ You need at least BASIC KYC verification to create campaigns. Please contact admin.', 'warning', 6000);
+    } else {
+      setShowWizard(true);
+    }
+  }}
+  style={{
+    backgroundColor: '#4f46e5',
+    color: 'white',
+    padding: '0.75rem 1.5rem',
+    borderRadius: '0.5rem',
+    fontWeight: '600',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    transition: 'background-color 0.2s'
+  }}
+  onMouseOver={(e) => e.target.style.backgroundColor = '#4338ca'}
+  onMouseOut={(e) => e.target.style.backgroundColor = '#4f46e5'}
+>
+  <Plus style={{ width: '1.25rem', height: '1.25rem' }} />
+  <span>Create Campaign</span>
+</button>
       </div>
 
       {/* Stats */}

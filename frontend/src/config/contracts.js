@@ -5,11 +5,11 @@
  */
 
 export const CONTRACT_ADDRESSES = {
-  userRegistry: "0x75b987308865403c993f56d501ea1002bb28f189",
-  campaignFactory: "0x90beab1788f70d00646c57cf38d6630e30e1bafd"
+  userRegistry: import.meta.env.VITE_USER_REGISTRY_ADDRESS || "0x75b987308865403c993f56d501ea1002bb28f189",
+  campaignFactory: import.meta.env.VITE_CAMPAIGN_FACTORY_ADDRESS || "0x90beab1788f70d00646c57cf38d6630e30e1bafd"
 };
 
-export const HARDCODED_ADMIN_ADDRESS = "0x1b4709064B3050d11Ba2540AbA8B3B4412159697";
+export const HARDCODED_ADMIN_ADDRESS = import.meta.env.VITE_ADMIN_ADDRESS || "0x1b4709064B3050d11Ba2540AbA8B3B4412159697";
 
 export const CONTRACT_ABIS = {
   userRegistry: [

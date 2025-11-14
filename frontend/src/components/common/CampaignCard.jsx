@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock, Users, Target, AlertCircle, CheckCircle } from 'lucide-react';
 
 const CampaignCard = ({ campaign, view = 'grid' }) => {
-  const progress = (parseFloat(campaign.raised) / parseFloat(campaign.goal)) * 100;
+  const progress = (parseFloat(campaign.totalRaised) / parseFloat(campaign.goal)) * 100;
   const daysLeft = Math.ceil((campaign.deadline - Date.now()) / (1000 * 60 * 60 * 24));
   const isCompleted = progress >= 100;
   const isExpired = daysLeft <= 0 && !isCompleted;
@@ -144,7 +144,7 @@ const CampaignCard = ({ campaign, view = 'grid' }) => {
                 color: '#6b7280',
                 marginBottom: '0.25rem'
               }}>
-                <span>{campaign.raised} ETH raised</span>
+                <span>{campaign.totalRaised} ETH raised</span>
                 <span>Goal: {campaign.goal} ETH</span>
               </div>
               <div style={{
@@ -181,7 +181,7 @@ const CampaignCard = ({ campaign, view = 'grid' }) => {
               color: '#1f2937',
               marginBottom: '0.5rem'
             }}>
-              {campaign.raised} ETH
+              {campaign.totalRaised} ETH
             </div>
             <div style={{
               fontSize: '0.875rem',
@@ -306,7 +306,7 @@ const CampaignCard = ({ campaign, view = 'grid' }) => {
             color: '#6b7280',
             marginBottom: '0.25rem'
           }}>
-            <span style={{ fontWeight: '600' }}>{campaign.raised} ETH</span>
+            <span style={{ fontWeight: '600' }}>{campaign.totalRaised} ETH</span>
             <span>{Math.round(progress)}%</span>
           </div>
           <div style={{

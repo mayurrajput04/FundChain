@@ -103,17 +103,18 @@ export const useWeb3 = () => {
   useEffect(() => {
     if (!window.ethereum) return;
 
-    const handleAccountsChanged = (accounts) => {
-      console.log('🔄 Wallet changed:', accounts[0]);
-      
-      if (accounts.length === 0) {
-        // User disconnected
-        disconnect();
-      } else {
-        // Account changed - reload the page to reset state
-        window.location.reload();
-      }
-    };
+// ✅ NEW (FIXED)
+const handleAccountsChanged = (accounts) => {
+  console.log('🔄 Wallet changed:', accounts[0]);
+  
+  if (accounts.length === 0) {
+    // User disconnected
+    disconnectWallet();  // ✅ CORRECT FUNCTION NAME
+  } else {
+    // Account changed - reload the page to reset state
+    window.location.reload();
+  }
+};
 
     const handleChainChanged = (newChainId) => {
       console.log('🔄 Chain changed:', parseInt(newChainId, 16));

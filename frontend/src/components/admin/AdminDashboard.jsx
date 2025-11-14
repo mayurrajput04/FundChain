@@ -1,9 +1,10 @@
+// ✅ NEW (WITH IMPORT)
 import React, { useState, useEffect } from 'react';
 import { Shield, Users, CheckCircle, Clock } from 'lucide-react';
 import { useCampaigns } from '../../hooks/useCampaigns';
 import { useUserRegistry } from '../../hooks/useUserRegistry';
+import { useWeb3 } from '../../hooks/useWeb3';  // ✅ ADD THIS LINE
 import UserManagement from './UserManagement';
-
 import { useNavigate } from 'react-router-dom';
 import contractConfig from '../../config/contracts';
 
@@ -19,30 +20,17 @@ const AdminDashboard = () => {
   const pendingCampaigns = campaigns.filter(c => !c.isApproved);
   const approvedCampaigns = campaigns.filter(c => c.isApproved);
 
-  useEffect(() => {
-    const checkAuth = () => {
-      const isAuth = localStorage.getItem('admin_authenticated');
-      const timestamp = localStorage.getItem('admin_timestamp');
-      
-      // Check if session expired (24 hours)
-      if (!isAuth || !timestamp || Date.now() - parseInt(timestamp) > 24 * 60 * 60 * 1000) {
-        localStorage.removeItem('admin_authenticated');
-        localStorage.removeItem('admin_timestamp');
-        navigate('/admin-secret-login');
-        return;
-      }
-
-      // Check if wallet is still admin
-      if (account?.toLowerCase() !== contractConfig.admin.toLowerCase()) {
-        localStorage.removeItem('admin_authenticated');
-        localStorage.removeItem('admin_timestamp');
-        navigate('/admin-secret-login');
-        return;
-      }
-    };
-
-    checkAuth();
-  }, [account, navigate]);
+// ✅ NEW (SIMPLIFIED AUTH - We'll add proper auth later)
+useEffect(() => {
+  // If not admin and not authenticated via login page, redirect
+  if (!isAdmin && !isOwner) {
+    const isAuthenticated = localStorage.getItem('admin_authenticated');
+    
+    if (!isAuthenticated) {
+      navigate('/admin-secret-login');
+    }
+  }
+}, [isAdmin, isOwner, navigate]);
 
   const handleApprove = async (campaignAddress) => {
     setApproving(campaignAddress);

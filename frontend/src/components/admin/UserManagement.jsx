@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, Shield, Ban, CheckCircle, AlertCircle } from 'lucide-react';
 import { useUserRegistry, KYCLevel } from '../../hooks/useUserRegistry';
 
