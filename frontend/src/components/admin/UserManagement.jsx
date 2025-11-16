@@ -3,15 +3,16 @@ import { Users, Shield, Ban, CheckCircle, AlertCircle } from 'lucide-react';
 import { useUserRegistry, KYCLevel } from '../../hooks/useUserRegistry';
 
 const UserManagement = () => {
-  const { 
-    getAllUsers, 
-    setUserKYCLevel, 
-    banUser, 
-    unbanUser, 
-    getStats,
-    isOwner, 
-    loading 
-  } = useUserRegistry();
+const { 
+  getAllUsers, 
+  setUserKYCLevel, 
+  banUser, 
+  unbanUser, 
+  getStats,
+  isOwner,
+  loading,
+  userRegistryContract // ✅ FIXED: Add this
+} = useUserRegistry();
 
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({ totalUsers: 0, bannedUsers: 0, activeUsers: 0 });
@@ -19,10 +20,50 @@ const UserManagement = () => {
   const [processingUser, setProcessingUser] = useState(null);
   const [filter, setFilter] = useState('all'); // all, banned, active
 
-  useEffect(() => {
+// ✅ FIXED: Real-time stats with event listeners
+useEffect(() => {
+  loadUsers();
+  loadStats();
+
+  // ✅ FIXED: Set up event listeners for real-time updates
+  if (!userRegistryContract) return;
+
+  const handleUserRegistered = () => {
+    console.log('📢 New user registered event detected');
     loadUsers();
     loadStats();
-  }, []);
+  };
+
+  const handleUserBanned = () => {
+    console.log('📢 User banned event detected');
+    loadUsers();
+    loadStats();
+  };
+
+  const handleUserUnbanned = () => {
+    console.log('📢 User unbanned event detected');
+    loadUsers();
+    loadStats();
+  };
+
+  const handleKYCUpdated = () => {
+    console.log('📢 KYC level updated event detected');
+    loadUsers();
+  };
+
+  userRegistryContract.on('UserRegistered', handleUserRegistered);
+  userRegistryContract.on('UserBanned', handleUserBanned);
+  userRegistryContract.on('UserUnbanned', handleUserUnbanned);
+  userRegistryContract.on('KYCLevelUpdated', handleKYCUpdated);
+
+  // ✅ FIXED: Cleanup listeners on unmount
+  return () => {
+    userRegistryContract.off('UserRegistered', handleUserRegistered);
+    userRegistryContract.off('UserBanned', handleUserBanned);
+    userRegistryContract.off('UserUnbanned', handleUserUnbanned);
+    userRegistryContract.off('KYCLevelUpdated', handleKYCUpdated);
+  };
+}, [userRegistryContract]); // ✅ FIXED: Depend on userRegistryContract
 
   const loadUsers = async () => {
     setLoadingUsers(true);

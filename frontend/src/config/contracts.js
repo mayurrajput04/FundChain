@@ -5,11 +5,89 @@
  */
 
 export const CONTRACT_ADDRESSES = {
-  userRegistry: import.meta.env.VITE_USER_REGISTRY_ADDRESS || "0x75b987308865403c993f56d501ea1002bb28f189",
-  campaignFactory: import.meta.env.VITE_CAMPAIGN_FACTORY_ADDRESS || "0x90beab1788f70d00646c57cf38d6630e30e1bafd"
+  userRegistry: import.meta.env.VITE_USER_REGISTRY_ADDRESS || "0xd3a808fdf3cafd4f2765f65bde0c5219329b41c4",
+  campaignFactory: import.meta.env.VITE_CAMPAIGN_FACTORY_ADDRESS || "0xf352f280d3d19faf2b7d1a33bf5c2c38ad878734"
 };
 
 export const HARDCODED_ADMIN_ADDRESS = import.meta.env.VITE_ADMIN_ADDRESS || "0x1b4709064B3050d11Ba2540AbA8B3B4412159697";
+
+export const CAMPAIGN_ABI = [
+  {
+    "type": "function",
+    "name": "contribute",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "approveCampaign",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "getCampaignDetails",
+    "inputs": [],
+    "outputs": [
+      { "name": "", "type": "address", "internalType": "address" },
+      { "name": "", "type": "string", "internalType": "string" },
+      { "name": "", "type": "string", "internalType": "string" },
+      { "name": "", "type": "string", "internalType": "string" },
+      { "name": "", "type": "uint256", "internalType": "uint256" },
+      { "name": "", "type": "uint256", "internalType": "uint256" },
+      { "name": "", "type": "uint256", "internalType": "uint256" },
+      { "name": "", "type": "uint256", "internalType": "uint256" },
+      { "name": "", "type": "bool", "internalType": "bool" },
+      { "name": "", "type": "bool", "internalType": "bool" },
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getContributorsCount",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "withdrawFunds",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "creator",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "uniqueBackersCount",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "hasContributed",
+    "inputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "contributionsByAddress",
+    "inputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  }
+];
 
 export const CONTRACT_ABIS = {
   userRegistry: [
@@ -951,7 +1029,8 @@ export const CONTRACT_ABIS = {
     ],
     "anonymous": false
   }
-]
+],
+campaign: CAMPAIGN_ABI  
 };
 
 export default {

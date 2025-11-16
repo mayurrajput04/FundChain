@@ -11,7 +11,8 @@ const CampaignDetail = () => {
   const [isContributing, setIsContributing] = useState(false);
 
   // Find the campaign by address
-  const campaign = campaigns.find(c => c.address === address);
+const campaign = campaigns.find(c => c.address === address);
+const isCreator = account && campaign?.creator.toLowerCase() === account.toLowerCase();
 
   if (!campaign) {
     return (
@@ -153,121 +154,125 @@ const CampaignDetail = () => {
             </div>
           </div>
         </div>
+{/* Right Column - Contribution */}
+<div>
+  <div style={{
+    backgroundColor: 'white',
+    borderRadius: '0.5rem',
+    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+    padding: '1.5rem'
+  }}>
+    <h3 style={{ 
+      fontSize: '1.5rem', 
+      fontWeight: '600', 
+      color: '#059669',
+      marginBottom: '1rem'
+    }}>
+      Support This Campaign
+    </h3>
 
-        {/* Right Column - Contribution */}
-        <div>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '0.5rem',
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-            padding: '1.5rem'
+    {/* ✅ FIXED: Show message if user is creator */}
+    {isCreator ? (
+      <div style={{
+        padding: '1rem',
+        backgroundColor: '#fef3c7',
+        borderRadius: '0.5rem',
+        color: '#92400e',
+        border: '1px solid #f59e0b'
+      }}>
+        <strong>ℹ️ This is your campaign</strong>
+        <p style={{ margin: '5px 0 0 0', fontSize: '14px' }}>
+          You cannot contribute to your own campaign. Share it with others to get backers!
+        </p>
+      </div>
+    ) : !isConnected ? (
+      <div style={{
+        padding: '1rem',
+        backgroundColor: '#fef3c7',
+        borderRadius: '0.5rem',
+        color: '#92400e'
+      }}>
+        Please connect your wallet to contribute
+      </div>
+    ) : !campaign.isApproved ? (
+      <div style={{
+        padding: '1rem',
+        backgroundColor: '#fef3c7',
+        borderRadius: '0.5rem',
+        color: '#92400e'
+      }}>
+        This campaign is pending admin approval
+      </div>
+    ) : isCompleted ? (
+      <div style={{
+        padding: '1rem',
+        backgroundColor: '#d1fae5',
+        borderRadius: '0.5rem',
+        color: '#065f46'
+      }}>
+        Campaign goal reached! Thank you for your support.
+      </div>
+    ) : isExpired ? (
+      <div style={{
+        padding: '1rem',
+        backgroundColor: '#fee2e2',
+        borderRadius: '0.5rem',
+        color: '#991b1b'
+      }}>
+        Campaign has ended
+      </div>
+    ) : (
+      <>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ 
+            display: 'block', 
+            fontSize: '0.875rem', 
+            fontWeight: '500', 
+            color: '#374151', 
+            marginBottom: '0.5rem' 
           }}>
-            <h3 style={{ 
-              fontSize: '1.5rem', 
-              fontWeight: '600', 
-              color: '#059669',
-              marginBottom: '1rem'
-            }}>
-              Support This Campaign
-            </h3>
-
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ 
-                display: 'block', 
-                fontSize: '0.875rem', 
-                fontWeight: '500', 
-                color: '#374151', 
-                marginBottom: '0.5rem' 
-              }}>
-                Contribution Amount (ETH)
-              </label>
-              <input
-                type="number"
-                value={contributionAmount}
-                onChange={(e) => setContributionAmount(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem 0.75rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.5rem',
-                  fontSize: '1rem'
-                }}
-                placeholder="0.1"
-                step="0.01"
-                min="0.001"
-                disabled={!isConnected || !campaign.isApproved || isCompleted || isExpired}
-              />
-            </div>
-
-            {!isConnected ? (
-              <div style={{
-                padding: '1rem',
-                backgroundColor: '#fef3c7',
-                borderRadius: '0.5rem',
-                color: '#92400e'
-              }}>
-                Please connect your wallet to contribute
-              </div>
-            ) : !campaign.isApproved ? (
-              <div style={{
-                padding: '1rem',
-                backgroundColor: '#fef3c7',
-                borderRadius: '0.5rem',
-                color: '#92400e'
-              }}>
-                This campaign is pending admin approval
-              </div>
-            ) : isCompleted ? (
-              <div style={{
-                padding: '1rem',
-                backgroundColor: '#d1fae5',
-                borderRadius: '0.5rem',
-                color: '#065f46'
-              }}>
-                Campaign goal reached! Thank you for your support.
-              </div>
-            ) : isExpired ? (
-              <div style={{
-                padding: '1rem',
-                backgroundColor: '#fee2e2',
-                borderRadius: '0.5rem',
-                color: '#991b1b'
-              }}>
-                Campaign has ended
-              </div>
-            ) : (
-              <button
-                onClick={handleContribution}
-                disabled={isContributing || !contributionAmount}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 1.5rem',
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  color: 'white',
-                  borderRadius: '0.5rem',
-                  border: 'none',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  cursor: isContributing || !contributionAmount ? 'not-allowed' : 'pointer',
-                  opacity: isContributing || !contributionAmount ? 0.6 : 1,
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => {
-                  if (!isContributing && contributionAmount) {
-                    e.target.style.opacity = '0.9';
-                  }
-                }}
-                onMouseOut={(e) => {
-                  if (!isContributing && contributionAmount) {
-                    e.target.style.opacity = '1';
-                  }
-                }}
-              >
-                {isContributing ? 'Processing...' : 'Contribute Now'}
-              </button>
-            )}
-          </div>
+            Contribution Amount (ETH)
+          </label>
+          <input
+            type="number"
+            value={contributionAmount}
+            onChange={(e) => setContributionAmount(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.5rem 0.75rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              fontSize: '1rem'
+            }}
+            placeholder="0.1"
+            step="0.01"
+            min="0.001"
+          />
         </div>
+
+        <button
+          onClick={handleContribution}
+          disabled={isContributing || !contributionAmount}
+          style={{
+            width: '100%',
+            padding: '0.75rem 1.5rem',
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            color: 'white',
+            borderRadius: '0.5rem',
+            border: 'none',
+            fontSize: '1rem',
+            fontWeight: '600',
+            cursor: isContributing || !contributionAmount ? 'not-allowed' : 'pointer',
+            opacity: isContributing || !contributionAmount ? 0.6 : 1,
+            transition: 'all 0.2s'
+          }}
+        >
+          {isContributing ? 'Processing...' : 'Contribute Now'}
+        </button>
+      </>
+    )}
+  </div>
+</div>
       </div>
     </div>
   );

@@ -1,57 +1,45 @@
 [profile.default]
-src = 'src'
-out = 'out'
-libs = ['lib']
-solc = '0.8.19'
+src = "src"
+out = "out"
+libs = ["lib"]
+solc = "0.8.19"
 
-# Add remappings for imports
 remappings = [
     "@openzeppelin/=lib/openzeppelin-contracts/",
     "@iden3/=lib/contracts/"
 ]
 
-# Optimizer
 optimizer = true
 optimizer_runs = 200
 
-# Metadata
 bytecode_hash = "ipfs"
 sparse_mode = true
 
-# Testing
 fuzz_runs = 256
 invariant_runs = 256
 
-# Verbosity
 verbosity = 1
 
-# Extra output
 extra_output = ["metadata", "storageLayout"]
 
-# ✅ ADD THIS SECTION
-[rpc_endpoints]
-sepolia = "${SEPOLIA_RPC_URL}"
-mainnet = "${MAINNET_RPC_URL}"
-localhost = "http://localhost:8545"
-
-# ✅ ADD THIS SECTION
-[etherscan]
-sepolia = { key = "${ETHERSCAN_API_KEY}" }
-
-# File system permissions (for writing deployment data)
+# ✔ Move fs_permissions INSIDE profile.default correctly
 fs_permissions = [
     { access = "read-write", path = "./" },
     { access = "read-write", path = "../config/" },
     { access = "read-write", path = "../scripts/" }
 ]
 
-# ✅ Automatically load .env file
+[rpc_endpoints]
+sepolia = "${SEPOLIA_RPC_URL}"
+mainnet = "${MAINNET_RPC_URL}"
+localhost = "http://localhost:8545"
+
+[etherscan]
+sepolia = { key = "${ETHERSCAN_API_KEY}" }
+
 [env]
 load_dotenv = true
 
-# Forking
-# https://sepolia.infura.io/v3/37f9d223ad3f412687ad9560b571b4de
-eth_rpc_url = "https://sepolia.infura.io/v3/37f9d223ad3f412687ad9560b571b4de" 
-
 [fmt]
 line_length = 120
+

@@ -9,14 +9,15 @@ const CampaignPreflightCheck = ({ onPassed, onFailed }) => {
   const { account, signer, chainId, isCorrectNetwork } = useWeb3();
   const { isRegistered, kycLevel, userProfile, loading: userLoading } = useUserRegistry();
   
-  const [checks, setChecks] = useState({
-    network: { status: 'pending', message: '' },
-    wallet: { status: 'pending', message: '' },
-    registration: { status: 'pending', message: '' },
-    kycLevel: { status: 'pending', message: '' },
-    notBanned: { status: 'pending', message: '' },
-    contractConfig: { status: 'pending', message: '' }
-  });
+const [checks, setChecks] = useState({
+  network: { status: 'pending', message: '' },
+  wallet: { status: 'pending', message: '' },
+  registration: { status: 'pending', message: '' },
+  role: { status: 'pending', message: '' }, // ✅ FIXED: Add role check
+  kycLevel: { status: 'pending', message: '' },
+  notBanned: { status: 'pending', message: '' },
+  contractConfig: { status: 'pending', message: '' }
+});
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
@@ -75,6 +76,27 @@ const CampaignPreflightCheck = ({ onPassed, onFailed }) => {
         message: 'Not registered. You must register before creating campaigns.' 
       };
     }
+
+    // ✅ FIXED: Check 5 - User Role (must be CREATOR or BOTH, not BACKER)
+if (isRegistered && userProfile) {
+  const roleName = ['BACKER', 'CREATOR', 'BOTH'][userProfile.primaryRole];
+  if (userProfile.primaryRole === 0) { // BACKER
+    newChecks.role = {
+      status: 'fail',
+      message: `Your role is BACKER. Only CREATOR or BOTH roles can create campaigns. Please update your role in profile settings.`
+    };
+  } else {
+    newChecks.role = {
+      status: 'pass',
+      message: `Role: ${roleName} (can create campaigns)`
+    };
+  }
+} else {
+  newChecks.role = {
+    status: 'pending',
+    message: 'Register first to check role'
+  };
+}
 
     // Check 5: KYC Level
     if (isRegistered) {

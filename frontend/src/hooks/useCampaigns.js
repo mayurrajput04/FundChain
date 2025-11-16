@@ -21,6 +21,7 @@ const FACTORY_ADDRESS = contractConfig?.addresses?.campaignFactory;
 const USER_REGISTRY_ADDRESS = contractConfig?.addresses?.userRegistry;
 const CAMPAIGN_FACTORY_ABI = contractConfig?.abis?.campaignFactory;
 const USER_REGISTRY_ABI = contractConfig?.abis?.userRegistry;
+const CAMPAIGN_ABI = contractConfig?.abis?.campaign; // ✅ CHANGED: Import from config
 const HARDCODED_ADMIN_ADDRESS = contractConfig?.admin || "0x1b4709064B3050d11Ba2540AbA8B3B4412159697";
 
 // ✅ VALIDATE ON LOAD
@@ -50,512 +51,7 @@ if (createCampaignABI) {
   console.log('   Inputs:', createCampaignABI.inputs?.map(i => `${i.name}: ${i.type}`));
 }
 
-// Campaign Factory ABI
-// const CAMPAIGN_FACTORY_ABI = [
-//   {
-//     "inputs": [],
-//     "stateMutability": "nonpayable",
-//     "type": "constructor"
-//   },
-//   {
-//     "anonymous": false,
-//     "inputs": [
-//       {
-//         "indexed": false,
-//         "internalType": "address",
-//         "name": "campaignAddress",
-//         "type": "address"
-//       },
-//       {
-//         "indexed": false,
-//         "internalType": "address",
-//         "name": "creator",
-//         "type": "address"
-//       },
-//       {
-//         "indexed": false,
-//         "internalType": "string",
-//         "name": "title",
-//         "type": "string"
-//       },
-//       {
-//         "indexed": false,
-//         "internalType": "uint256",
-//         "name": "goal",
-//         "type": "uint256"
-//       }
-//     ],
-//     "name": "CampaignCreated",
-//     "type": "event"
-//   },
-//   {
-//     "inputs": [
-//       {
-//         "internalType": "string",
-//         "name": "_title",
-//         "type": "string"
-//       },
-//       {
-//         "internalType": "uint256",
-//         "name": "_goal",
-//         "type": "uint256"
-//       },
-//       {
-//         "internalType": "uint256",
-//         "name": "_deadline",
-//         "type": "uint256"
-//       },
-//       {
-//         "internalType": "string",
-//         "name": "_category",
-//         "type": "string"
-//       },
-//       {
-//         "internalType": "string",
-//         "name": "_description",
-//         "type": "string"
-//       }
-//     ],
-//     "name": "createCampaign",
-//     "outputs": [
-//       {
-//         "internalType": "address",
-//         "name": "",
-//         "type": "address"
-//       }
-//     ],
-//     "stateMutability": "nonpayable",
-//     "type": "function"
-//   },
-//   {
-//     "inputs": [
-//       {
-//         "internalType": "uint256",
-//         "name": "",
-//         "type": "uint256"
-//       }
-//     ],
-//     "name": "deployedCampaigns",
-//     "outputs": [
-//       {
-//         "internalType": "address",
-//         "name": "",
-//         "type": "address"
-//       }
-//     ],
-//     "stateMutability": "view",
-//     "type": "function"
-//   },
-//   {
-//     "inputs": [],
-//     "name": "getDeployedCampaigns",
-//     "outputs": [
-//       {
-//         "internalType": "address[]",
-//         "name": "",
-//         "type": "address[]"
-//       }
-//     ],
-//     "stateMutability": "view",
-//     "type": "function"
-//   },
-//   {
-//     "inputs": [
-//       {
-//         "internalType": "address",
-//         "name": "_address",
-//         "type": "address"
-//       }
-//     ],
-//     "name": "isAdmin",
-//     "outputs": [
-//       {
-//         "internalType": "bool",
-//         "name": "",
-//         "type": "bool"
-//       }
-//     ],
-//     "stateMutability": "view",
-//     "type": "function"
-//   },
-//   {
-//     "inputs": [],
-//     "name": "admin",
-//     "outputs": [
-//       {
-//         "internalType": "address",
-//         "name": "",
-//         "type": "address"
-//       }
-//     ],
-//     "stateMutability": "view",
-//     "type": "function"
-//   }
-// ];
 
-// ✅ ADD THIS - Campaign ABI
-const CAMPAIGN_ABI = [
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_creator",
-        "type": "address"
-      },
-      {
-        "internalType": "string",
-        "name": "_title",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_goal",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_deadline",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "_category",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_description",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "_factoryAddress",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "contributor",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "Funded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [],
-    "name": "CampaignApproved",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [],
-    "name": "CampaignCompleted",
-    "type": "event"
-  },
-  {
-    "inputs": [],
-    "name": "approveCampaign",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "contribute",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getCampaignDetails",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      },
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getContributorsCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "withdrawFunds",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "category",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "contributionsByAddress",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "contributions",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "contributor",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "creator",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "deadline",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "description",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "goal",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "isActive",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "isApproved",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "title",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "totalRaised",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "factory",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "userRegistry",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  }
-];
 
 // // 🔒 HARDCODED ADMIN ADDRESS - ONLY THIS ADDRESS HAS ADMIN RIGHTS
 // const HARDCODED_ADMIN_ADDRESS = "0x1b4709064B3050d11Ba2540AbA8B3B4412159697";
@@ -754,43 +250,57 @@ export const useCampaigns = () => {
     }
   }, [factoryContract, isAdmin, loadCampaigns]);
 
-  const contributeToCampaign = useCallback(async (campaignAddress, amount) => {
-    if (!signer) throw new Error('Wallet not connected');
+const contributeToCampaign = useCallback(async (campaignAddress, amount) => {
+  if (!signer) throw new Error('Wallet not connected');
 
-    // BLOCK ADMIN FROM CONTRIBUTING
-    if (isAdmin) {
-      throw new Error('❌ Admin cannot contribute to campaigns. Admin role is only for verification and approval.');
+  // BLOCK ADMIN FROM CONTRIBUTING
+  if (isAdmin) {
+    throw new Error('❌ Admin cannot contribute to campaigns. Admin role is only for verification and approval.');
+  }
+
+  try {
+    console.log('💰 Contributing to campaign:', campaignAddress);
+    
+    // ✅ FIXED: Get campaign details to check if user is creator
+    const campaignContract = new ethers.Contract(campaignAddress, CAMPAIGN_ABI, signer);
+    const details = await campaignContract.getCampaignDetails();
+    const campaignCreator = details[0];
+    
+    // ✅ FIXED: Prevent self-donation (frontend check)
+    if (campaignCreator.toLowerCase() === account.toLowerCase()) {
+      throw new Error('❌ You cannot contribute to your own campaign.');
     }
+    
+    const tx = await campaignContract.contribute({
+      value: ethers.parseEther(amount),
+      gasLimit: 500000
+    });
 
-    try {
-      console.log('💰 Contributing to campaign:', campaignAddress);
-      const campaignContract = new ethers.Contract(campaignAddress, CAMPAIGN_ABI, signer);
-      const tx = await campaignContract.contribute({
-        value: ethers.parseEther(amount),
-        gasLimit: 500000
-      });
-
-      console.log('📝 Contribution transaction sent:', tx.hash);
-      const receipt = await tx.wait(1);
-      console.log('✅ Contribution successful!');
-      
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      await loadCampaigns(false);
-      
-      return receipt;
-    } catch (err) {
-      console.error('❌ Error contributing:', err);
-      if (err.message.includes('user rejected')) {
-        throw new Error('Transaction was rejected by user');
-      } else if (err.message.includes('insufficient funds')) {
-        throw new Error('Insufficient funds for transaction');
-      } else if (err.message.includes('Admin cannot contribute')) {
-        throw err;
-      } else {
-        throw new Error('Failed to contribute: ' + err.message);
-      }
+    console.log('📝 Contribution transaction sent:', tx.hash);
+    const receipt = await tx.wait(1);
+    console.log('✅ Contribution successful!');
+    
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    await loadCampaigns(false);
+    
+    return receipt;
+  } catch (err) {
+    console.error('❌ Error contributing:', err);
+    
+    // ✅ FIXED: Better error messages
+    if (err.message.includes('user rejected')) {
+      throw new Error('Transaction was rejected by user');
+    } else if (err.message.includes('insufficient funds')) {
+      throw new Error('Insufficient funds for transaction');
+    } else if (err.message.includes('Cannot contribute to your own campaign')) {
+      throw new Error('You cannot contribute to your own campaign');
+    } else if (err.message.includes('Admin cannot contribute')) {
+      throw err;
+    } else {
+      throw new Error('Failed to contribute: ' + err.message);
     }
-  }, [signer, isAdmin, loadCampaigns]);
+  }
+}, [signer, isAdmin, account, loadCampaigns]); // ✅ FIXED: Added account dependency
 
   const approveCampaign = useCallback(async (campaignAddress) => {
     if (!signer) throw new Error('Wallet not connected');

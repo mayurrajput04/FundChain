@@ -29,45 +29,53 @@ contract CampaignFactory {
         minKYCForContribution = UserRegistry.KYCLevel.NONE;   // Anyone can contribute
     }
     
-    function createCampaign(
-        string memory _title,
-        uint _goal,
-        uint _deadline,
-        string memory _category,
-        string memory _description
-    ) public returns (address) {
-        // ✅ NEW: Check if user is registered
-        require(
-            userRegistry.isRegistered(msg.sender),
-            "You must register first before creating campaigns"
-        );
-        
-        // ✅ NEW: Check KYC level
-        require(
-            userRegistry.meetsKYCRequirement(msg.sender, minKYCForCreation),
-            "Insufficient KYC level to create campaign"
-        );
-        
-        // ✅ NEW: Check user is not banned
-        UserRegistry.UserProfile memory profile = userRegistry.getUserProfile(msg.sender);
-        require(!profile.isBanned, "Your account is banned");
-        
-        // Rest of campaign creation (existing code)
-        Campaign newCampaign = new Campaign(
-            msg.sender,
-            _title,
-            _goal,
-            _deadline,
-            _category,
-            _description,
-            address(this)  // Pass factory address
-        );
-        
-        deployedCampaigns.push(address(newCampaign));
-        
-        emit CampaignCreated(address(newCampaign), msg.sender, _title, _goal);
-        return address(newCampaign);
-    }
+function createCampaign(
+    string memory _title,
+    uint _goal,
+    uint _deadline,
+    string memory _category,
+    string memory _description
+) public returns (address) {
+    // Check if user is registered
+    require(
+        userRegistry.isRegistered(msg.sender),
+        "You must register first before creating campaigns"
+    );
+    
+    // Check KYC level
+    require(
+        userRegistry.meetsKYCRequirement(msg.sender, minKYCForCreation),
+        "Insufficient KYC level to create campaign"
+    );
+    
+    // Get user profile
+    UserRegistry.UserProfile memory profile = userRegistry.getUserProfile(msg.sender);
+    
+    // Check user is not banned
+    require(!profile.isBanned, "Your account is banned");
+    
+    // ✅ FIXED: Prevent BACKER role from creating campaigns
+    require(
+        profile.primaryRole != UserRegistry.UserRole.BACKER,
+        "Backers cannot create campaigns. Please change your role to CREATOR or BOTH in your profile settings."
+    );
+    
+    // Create campaign
+    Campaign newCampaign = new Campaign(
+        msg.sender,
+        _title,
+        _goal,
+        _deadline,
+        _category,
+        _description,
+        address(this)
+    );
+    
+    deployedCampaigns.push(address(newCampaign));
+    
+    emit CampaignCreated(address(newCampaign), msg.sender, _title, _goal);
+    return address(newCampaign);
+}
     
     // ✅ NEW: Admin can change KYC requirements
     function setMinKYCForCreation(UserRegistry.KYCLevel _level) external {
@@ -98,7 +106,7 @@ contract Campaign {
     }
     
     CampaignFactory public factory;
-    UserRegistry public userRegistry;  // ✅ NEW
+    UserRegistry public userRegistry;
     
     address public creator;
     string public title;
@@ -112,6 +120,10 @@ contract Campaign {
     
     Contribution[] public contributions;
     mapping(address => uint) public contributionsByAddress;
+    
+    // ✅ NEW: Track unique backers
+    mapping(address => bool) public hasContributed;
+    uint256 public uniqueBackersCount;
     
     event Funded(address contributor, uint amount);
     event CampaignApproved();
@@ -127,7 +139,6 @@ contract Campaign {
         _;
     }
     
-    // ✅ UPDATED: Constructor
     constructor(
         address _creator,
         string memory _title,
@@ -138,7 +149,7 @@ contract Campaign {
         address _factoryAddress
     ) {
         factory = CampaignFactory(_factoryAddress);
-        userRegistry = factory.userRegistry();  // ✅ Get UserRegistry from factory
+        userRegistry = factory.userRegistry();
         
         creator = _creator;
         title = _title;
@@ -148,6 +159,7 @@ contract Campaign {
         description = _description;
         isActive = true;
         isApproved = false;
+        uniqueBackersCount = 0; // ✅ FIXED: Initialize unique backer count
     }
     
     function contribute() public payable {
@@ -156,13 +168,16 @@ contract Campaign {
         require(block.timestamp < deadline, "Campaign ended");
         require(msg.value > 0, "Contribution must be > 0");
         
-        // ✅ NEW: Check if contributor is registered
+        // ✅ FIXED: Prevent self-donation
+        require(msg.sender != creator, "Cannot contribute to your own campaign");
+        
+        // Check if contributor is registered
         require(
             userRegistry.isRegistered(msg.sender),
             "You must register before contributing"
         );
         
-        // ✅ NEW: Check KYC requirement
+        // Check KYC requirement
         require(
             userRegistry.meetsKYCRequirement(
                 msg.sender, 
@@ -171,9 +186,15 @@ contract Campaign {
             "Insufficient KYC level to contribute"
         );
         
-        // ✅ NEW: Check not banned
+        // Check not banned
         UserRegistry.UserProfile memory profile = userRegistry.getUserProfile(msg.sender);
         require(!profile.isBanned, "Your account is banned");
+        
+        // ✅ FIXED: Track unique backers properly
+        if (!hasContributed[msg.sender]) {
+            hasContributed[msg.sender] = true;
+            uniqueBackersCount++;
+        }
         
         contributions.push(Contribution(msg.sender, msg.value, block.timestamp));
         contributionsByAddress[msg.sender] += msg.value;
@@ -210,14 +231,20 @@ contract Campaign {
             goal,
             deadline,
             totalRaised,
-            contributions.length,
+            uniqueBackersCount, // ✅ FIXED: Return unique count
             isApproved,
             isActive,
             address(this).balance
         );
     }
     
+    // ✅ FIXED: Return unique backers count
     function getContributorsCount() public view returns (uint) {
+        return uniqueBackersCount;
+    }
+    
+    // ✅ NEW: Get total number of contributions (for analytics)
+    function getTotalContributions() public view returns (uint) {
         return contributions.length;
     }
 }

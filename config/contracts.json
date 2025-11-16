@@ -1,15 +1,15 @@
 {
   "network": "sepolia",
   "chainId": 11155111,
-  "deployedAt": "2025-10-21T17:33:35.451Z",
+  "deployedAt": "2025-11-16T22:17:52.384Z",
   "deployer": "0x1b4709064b3050d11ba2540aba8b3b4412159697",
   "contracts": {
     "UserRegistry": {
-      "address": "0x75b987308865403c993f56d501ea1002bb28f189",
+      "address": "0xd3a808fdf3cafd4f2765f65bde0c5219329b41c4",
       "name": "UserRegistry"
     },
     "CampaignFactory": {
-      "address": "0x90beab1788f70d00646c57cf38d6630e30e1bafd",
+      "address": "0xf352f280d3d19faf2b7d1a33bf5c2c38ad878734",
       "name": "CampaignFactory"
     }
   }
