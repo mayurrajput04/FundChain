@@ -8,8 +8,18 @@ const PORT = process.env.PORT || 3001;
 
 // ============ MIDDLEWARE ============
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://your-production-domain.com'
+];
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
