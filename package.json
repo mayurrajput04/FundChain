@@ -1,0 +1,20 @@
+{
+  "name": "fundchain-platform",
+  "version": "1.0.0",
+  "description": "Decentralized crowdfunding platform",
+  "private": true,
+  "scripts": {
+    "install": "cd frontend && npm install",
+    "update-addresses": "node scripts/update-addresses.js",
+    "deploy": "cd contracts && forge script script/DeployAll.s.sol --rpc-url sepolia --broadcast --verify -vvvv && cd .. && npm run update-addresses",
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "build": "cd frontend && npm run build && cd ../backend && npm install --production",
+    "test:contracts": "cd contracts && forge test -vvv",
+    "preview": "cd frontend && npm run preview"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
