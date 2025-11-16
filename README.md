@@ -661,11 +661,9 @@ MIT License - See [LICENSE](LICENSE)
 **Get Help:**
 - 🐛 [Report Bugs](https://github.com/mayurrajput04/FundChain/issues)
 - 💬 [Discussions](https://github.com/mayurrajput04/FundChain/discussions)
-- 📧 Email: (add your email if you want)
 
 **Community:**
-- Discord: (create if you want)
-- Twitter: (add handle if you have one)
+- [Twitter](https://x.com/samuraiigintoki)
 
 ---
 
@@ -709,6 +707,7 @@ And if you actually use this to fund something real, **please tell me** - that w
 **License:** MIT | **Status:** Testnet | **Support:** [Issues](https://github.com/mayurrajput04/FundChain/issues)
 
 </div>
+
 ```
 
 ---
@@ -769,32 +768,4 @@ git push origin main
 
 ---
 
-## ✅ **CHECKLIST - What to Do Next**
 
-```
-Documentation:
-□ Replace README.md with updated version
-□ Create CONTRIBUTING.md (copy from template)
-□ Create LICENSE file (MIT)
-□ Add CODE_OF_CONDUCT.md (optional)
-
-Critical Fixes Needed:
-□ Implement refund mechanism (HIGH PRIORITY)
-□ Remove hardcoded admin password
-□ Add multi-sig admin wallet
-□ Add IPFS image upload
-□ Implement campaign comments
-
-Nice to Have:
-□ Add screenshots to README
-□ Create demo video
-□ Set up GitHub Discussions
-□ Add issue templates
-□ Create PR template
-```
-
----
-
-This README is **honest, accurate, and matches what we actually built**. It doesn't oversell features we don't have, and clearly warns users about limitations. 
-
-Want me to create the other missing docs (CONTRIBUTING.md, LICENSE, etc.)?
