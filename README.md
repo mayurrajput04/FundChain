@@ -13,7 +13,7 @@
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.19-363636)](https://soliditylang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[Live Demo](https://fundchain.vercel.app) • [Smart Contracts](https://sepolia.etherscan.io/address/0x90beab1788f70d00646c57cf38d6630e30e1bafd) • [Report Bug](https://github.com/mayurrajput04/FundChain/issues)
+[Live Demo]([https://fundchain.vercel.app](https://fundchain-delta.vercel.app/)) • [Smart Contracts](https://sepolia.etherscan.io/address/0x90beab1788f70d00646c57cf38d6630e30e1bafd) • [Report Bug](https://github.com/mayurrajput04/FundChain/issues)
 
 </div>
 
