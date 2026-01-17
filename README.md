@@ -40,7 +40,7 @@ Think: *"Kickstarter meets Ethereum, without the greed"*
 
 ### Try It Now (No Setup Required)
 
-1. **Visit**: [fundchain.vercel.app](https://fundchain.vercel.app)
+1. **Visit**: [fundchain.vercel.app]([https://fundchain.vercel.app](https://fundchain-delta.vercel.app/))
 2. **Install**: [MetaMask](https://metamask.io/) browser extension
 3. **Get**: Free test ETH from [Sepolia Faucet](https://sepoliafaucet.com/)
 4. **Connect**: Your wallet and start exploring
