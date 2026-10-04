@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Lock, Eye, EyeOff } from 'lucide-react';
+import { Shield, Lock } from 'lucide-react';
 import { useWeb3 } from '../../hooks/useWeb3';
 import contractConfig from '../../config/contracts';
-
-const ADMIN_PASSWORD = 'Mayur#214'; // Change this to your secret password
 
 const AdminLogin = () => {
   const { account, isConnected } = useWeb3();
   const navigate = useNavigate();
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
   const handleLogin = (e) => {
@@ -26,12 +22,6 @@ const AdminLogin = () => {
     const isAdmin = account?.toLowerCase() === contractConfig.admin.toLowerCase();
     if (!isAdmin) {
       setError('This wallet is not authorized as admin');
-      return;
-    }
-
-    // Check password
-    if (password !== ADMIN_PASSWORD) {
-      setError('Incorrect password');
       return;
     }
 
@@ -99,66 +89,15 @@ const AdminLogin = () => {
           </div>
         ) : (
           <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#374151'
-              }}>
-                Admin Password
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Lock 
-                  size={18} 
-                  color="#9ca3af"
-                  style={{
-                    position: 'absolute',
-                    left: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)'
-                  }}
-                />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setError('');
-                  }}
-                  placeholder="Enter admin password"
-                  style={{
-                    width: '100%',
-                    padding: '12px 40px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    boxSizing: 'border-box'
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute',
-                    right: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    border: 'none',
-                    background: 'none',
-                    cursor: 'pointer',
-                    padding: '4px'
-                  }}
-                >
-                  {showPassword ? (
-                    <EyeOff size={18} color="#9ca3af" />
-                  ) : (
-                    <Eye size={18} color="#9ca3af" />
-                  )}
-                </button>
-              </div>
-            </div>
+            <p style={{
+              margin: '0 0 20px 0',
+              fontSize: '14px',
+              color: '#374151',
+              textAlign: 'center'
+            }}>
+              Your connected wallet is the administrator wallet. Admin actions are
+              checked again on-chain, so this screen only opens the panel.
+            </p>
 
             {error && (
               <div style={{

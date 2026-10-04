@@ -410,9 +410,9 @@ You need **BASIC KYC level minimum** to create campaigns:
    - Have to check manually
    - No alerts when campaign approved
 
-7. **Admin Password Hardcoded**
-   - Password visible in frontend code
-   - **Security risk** - will fix with signature auth
+7. **Admin screen is gated by the connected wallet only**
+   - The hardcoded password was removed. The admin panel opens only for the admin wallet, and every admin action is checked again on-chain
+   - The old password is still in git history, so do not reuse it anywhere
 
 8. **Gas Costs**
    - Creating campaign: ~1.5M gas (~$5-20 on mainnet)
@@ -641,7 +641,6 @@ A: After security audit + refund mechanism + testing.
 
 **Security Issues:**
 - ❌ Not professionally audited
-- ❌ Admin password in frontend code
 - ❌ Single admin wallet
 - ❌ No refund mechanism on the deployed v1 (v2 source has one)
 - ❌ Contracts not upgradeable
