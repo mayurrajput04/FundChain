@@ -4,6 +4,9 @@ pragma solidity ^0.8.19;
 import "./UserRegistry.sol";
 
 contract CampaignFactory {
+    /// @dev Longest campaign a creator can open, in days.
+    uint public constant MAX_DURATION_DAYS = 365;
+
     address[] public deployedCampaigns;
     address public admin;
     UserRegistry public userRegistry;  // ✅ NEW: Reference to UserRegistry
@@ -36,6 +39,12 @@ function createCampaign(
     string memory _category,
     string memory _description
 ) public returns (address) {
+    require(_goal > 0, "Goal must be > 0");
+    require(
+        _deadline > 0 && _deadline <= MAX_DURATION_DAYS,
+        "Deadline must be 1-365 days"
+    );
+
     // Check if user is registered
     require(
         userRegistry.isRegistered(msg.sender),
@@ -115,6 +124,8 @@ contract Campaign {
     uint public goal;
     uint public deadline;
     uint public totalRaised;
+    uint public totalRefunded;
+    bool public fundsWithdrawn;
     bool public isApproved;
     bool public isActive;
     
@@ -128,7 +139,20 @@ contract Campaign {
     event Funded(address contributor, uint amount);
     event CampaignApproved();
     event CampaignCompleted();
+    event FundsWithdrawn(address indexed creator, uint amount);
+    event Refunded(address indexed contributor, uint amount);
     
+    // Minimal reentrancy lock. OpenZeppelin's ReentrancyGuard needs solc >= 0.8.20 and this
+    // project is pinned to 0.8.19, so the lock is inlined instead of changing the compiler.
+    uint private _lock = 1;
+
+    modifier nonReentrant() {
+        require(_lock == 1, "Reentrant call");
+        _lock = 2;
+        _;
+        _lock = 1;
+    }
+
     modifier onlyCreator() {
         require(msg.sender == creator, "Only creator can call this");
         _;
@@ -208,15 +232,45 @@ contract Campaign {
     }
     
     function approveCampaign() public onlyAdmin {
+        require(!isApproved, "Already approved");
         isApproved = true;
         emit CampaignApproved();
     }
     
-    function withdrawFunds() public onlyCreator {
+    /// @notice Creator pulls the raised funds once the goal is met and the deadline has passed.
+    /// @dev The flag is set before the external call (checks-effects-interactions) and the
+    ///      call forwards all gas, so a contract wallet can be the creator.
+    function withdrawFunds() public onlyCreator nonReentrant {
+        require(!fundsWithdrawn, "Already withdrawn");
         require(totalRaised >= goal, "Goal not reached");
         require(block.timestamp >= deadline, "Campaign not ended");
-        
-        payable(creator).transfer(address(this).balance);
+
+        fundsWithdrawn = true;
+        uint amount = totalRaised;
+
+        (bool ok, ) = payable(creator).call{value: amount}("");
+        require(ok, "Transfer failed");
+
+        emit FundsWithdrawn(creator, amount);
+    }
+
+    /// @notice A backer pulls their own contribution back if the goal was missed.
+    /// @dev Each backer withdraws for themselves, so no loop over the contributions array is needed
+    ///      and one reverting backer cannot block anyone else. Banned backers can still refund.
+    function refund() public nonReentrant {
+        require(block.timestamp >= deadline, "Campaign not ended");
+        require(totalRaised < goal, "Goal was reached");
+
+        uint amount = contributionsByAddress[msg.sender];
+        require(amount > 0, "Nothing to refund");
+
+        contributionsByAddress[msg.sender] = 0;
+        totalRefunded += amount;
+
+        (bool ok, ) = payable(msg.sender).call{value: amount}("");
+        require(ok, "Refund failed");
+
+        emit Refunded(msg.sender, amount);
     }
     
     function getCampaignDetails() public view returns (
