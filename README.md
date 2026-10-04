@@ -102,10 +102,13 @@ npm run dev
                 ↓
 4. Backers contribute ETH → Stored in smart contract
                 ↓
-5. Goal reached + Deadline passed → Creator withdraws funds
+5a. Goal reached + deadline passed → Creator withdraws funds
+5b. Goal missed + deadline passed → each backer pulls their own refund
 ```
 
-**Key Point:** Funds are locked in the smart contract. No company can touch them.
+**Key Point:** Funds are locked in the smart contract. No company can touch them. After the deadline the money goes one of two ways, never both: to the creator (goal met) or back to the backers (goal missed).
+
+> **Version note.** The contracts on Sepolia (links below) are **v1**. v1 has no refund path, so a campaign that misses its goal keeps the money. The refund flow, the pull-based withdrawal and the input checks described in [Contract changes in v2](#-contract-changes-in-v2) are in `contracts/src/CampaignFactory.sol` on `main` after this change, **but are not deployed yet**. The live frontend still talks to v1.
 
 ---
 
@@ -170,7 +173,45 @@ npm run dev
 - ✅ OpenZeppelin security libraries
 - ⚠️ **Not audited** - Use at your own risk
 
-**Verified on Etherscan:** View source code and interact directly with contracts.
+**Verified on Etherscan:** View source code and interact directly with contracts (v1).
+
+---
+
+## 🔁 Contract changes in v2
+
+What changed in the source, and why. Terms (goal, deadline, creator) are fixed when a campaign is created, so there is nothing for a backer to be front-run on, and no guard was added for that.
+
+| Change | Why |
+|---|---|
+| `refund()`: after the deadline, if `totalRaised < goal`, each backer pulls back what they paid | v1 had no way out for a failed campaign |
+| `withdrawFunds()` now uses a `fundsWithdrawn` flag, sets it before sending, and pays with `call` instead of `transfer` | `transfer` forwards 2,300 gas and fails for contract wallets; the flag stops a second withdrawal |
+| Small reentrancy lock on both functions | Defence in depth. State is updated before the external call, so the checks-effects-interactions order already blocks reentry |
+| Pull, not push | Nobody loops over `contributions`. Each backer withdraws for themselves, so one reverting wallet cannot block the others |
+| `createCampaign` rejects a zero goal and a duration outside 1-365 days | v1 accepted both |
+| `approveCampaign` can only run once | v1 allowed repeat approvals and repeat events |
+| `totalRefunded` and `fundsWithdrawn` public | Lets the tests (and anyone) check that the books match the balance |
+
+Not changed: the admin model (single admin), KYC levels, and the registry. The lock is inlined because OpenZeppelin's `ReentrancyGuard` needs solc 0.8.20+ and this project is pinned to 0.8.19.
+
+---
+
+## 🧪 Testing
+
+```bash
+cd contracts
+forge test                     # 68 tests, includes fuzz and invariant tests
+forge coverage --report summary --no-match-coverage 'script|test'
+```
+
+| File | What it covers |
+|---|---|
+| `test/Campaign.t.sol` | Factory rules, approval, contribute, withdraw, refund, reentrancy attackers (creator and backer), a creator that rejects ETH, a backer that refuses a refund, fuzzed payouts |
+| `test/CampaignInvariant.t.sol` | Random contribute/refund/withdraw/time-travel sequences. Checks: balance equals the books, withdraw and refund are mutually exclusive, refunds only when the goal was missed, backer balances sum to what is left |
+| `test/UserRegistry.t.sol`, `test/UserRegistryExtra.t.sol` | Registration, username rules, KYC, bans, reputation caps, owner-only functions, pagination |
+
+Coverage of `src/` (measured with `forge coverage`, scripts and tests excluded): **98.9% lines, 98.8% statements, 96.9% branches, 100% functions.** The uncovered lines are two in `UserRegistry` and three branches in `CampaignFactory` (the `isBanned` checks, which cannot be reached because `meetsKYCRequirement` already returns false for a banned user).
+
+The reentrancy and accounting tests were also checked by deliberately breaking the contract (no zeroing of the balance, no deadline check, no goal check, no flag, wrong payout amount) and confirming the suite fails each time. The lock alone is not what stops reentry in those tests: the state-before-call ordering does, and the tests only fail when both are removed.
 
 ---
 
@@ -340,10 +381,10 @@ You need **BASIC KYC level minimum** to create campaigns:
 
 ### Critical Issues
 
-1. **❌ No Refunds**
-   - If campaign doesn't reach goal, funds are **locked forever**
-   - Auto-refund mechanism not implemented yet
-   - **Workaround:** Only back campaigns you trust
+1. **❌ No Refunds on the deployed v1 contracts**
+   - On the Sepolia v1 deployment, a campaign that misses its goal keeps the money
+   - Fixed in the v2 source (`refund()`, pull-based), **not redeployed yet**, and the frontend has no Refund button yet
+   - **Workaround:** Only back campaigns you trust until v2 is deployed
 
 2. **❌ Single Admin Wallet**
    - Only one address can approve campaigns
@@ -591,17 +632,18 @@ A: After security audit + refund mechanism + testing.
 - ❌ Trust with large amounts
 
 **Security Measures Implemented:**
-- ✅ OpenZeppelin libraries
+- ✅ OpenZeppelin libraries (Ownable in the registry)
 - ✅ KYC verification
 - ✅ Admin approval
 - ✅ Ban system
 - ✅ Input validation
+- ✅ v2 source: pull-based refunds and withdrawals, reentrancy lock, checks-effects-interactions (not deployed)
 
 **Security Issues:**
 - ❌ Not professionally audited
 - ❌ Admin password in frontend code
 - ❌ Single admin wallet
-- ❌ No refund mechanism
+- ❌ No refund mechanism on the deployed v1 (v2 source has one)
 - ❌ Contracts not upgradeable
 
 **Planned:**
