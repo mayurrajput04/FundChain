@@ -15,8 +15,6 @@ optimizer_runs = 200
 bytecode_hash = "ipfs"
 sparse_mode = true
 
-fuzz_runs = 256
-invariant_runs = 256
 
 verbosity = 1
 
@@ -28,6 +26,13 @@ fs_permissions = [
     { access = "read-write", path = "../config/" },
     { access = "read-write", path = "../scripts/" }
 ]
+
+[fuzz]
+runs = 256
+
+[invariant]
+runs = 256
+depth = 100
 
 [rpc_endpoints]
 sepolia = "${SEPOLIA_RPC_URL}"
